@@ -14,6 +14,7 @@ export enum OrientationType {
   UNKNOWN = "UNKNOWN"
 }
 declare class Orientation {
+  static init(): void;
   static addOrientationListener(callback: (orientation: OrientationType) => void): void;
   static removeOrientationListener(callback: (orientation: OrientationType) => void): void;
   static addDeviceOrientationListener(callback: (deviceOrientation: OrientationType) => void): void;

@@ -41,8 +41,8 @@ import javax.annotation.Nullable;
 
 public class OrientationModule extends ReactContextBaseJavaModule implements LifecycleEventListener{
 
-    final BroadcastReceiver mReceiver;
-    final OrientationEventListener mOrientationListener;
+    BroadcastReceiver mReceiver;
+    OrientationEventListener mOrientationListener;
     final ReactApplicationContext ctx;
     private boolean isLocked = false;
     private String lastOrientationValue = "";
@@ -52,13 +52,38 @@ public class OrientationModule extends ReactContextBaseJavaModule implements Lif
     public OrientationModule(ReactApplicationContext reactContext) {
         super(reactContext);
         ctx = reactContext;
+    }
 
-        mOrientationListener = new OrientationEventListener(reactContext, SensorManager.SENSOR_DELAY_UI) {
+    @Override
+    public String getName() {
+        return "Orientation";
+    }
+
+    private String getCurrentOrientation() {
+
+        final Display display = ((WindowManager) getReactApplicationContext().getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
+
+        switch (display.getRotation()) {
+            case Surface.ROTATION_0:
+                return "PORTRAIT";
+            case Surface.ROTATION_90:
+                return "LANDSCAPE-LEFT";
+            case Surface.ROTATION_180:
+                return "PORTRAIT-UPSIDEDOWN";
+            case Surface.ROTATION_270:
+                return "LANDSCAPE-RIGHT";
+        }
+        return "UNKNOWN";
+    }
+
+    @ReactMethod
+    public void init() {
+        mOrientationListener = new OrientationEventListener(ctx, SensorManager.SENSOR_DELAY_UI) {
 
             @Override
             public void onOrientationChanged(int orientation) {
 
-                FLog.d(ReactConstants.TAG,"DeviceOrientation changed to " + orientation);
+                FLog.d(ReactConstants.TAG, "DeviceOrientation changed to " + orientation);
 
                 String deviceOrientationValue = lastDeviceOrientationValue;
 
@@ -83,8 +108,8 @@ public class OrientationModule extends ReactContextBaseJavaModule implements Lif
                     params.putString("deviceOrientation", deviceOrientationValue);
                     if (ctx.hasActiveCatalystInstance()) {
                         ctx
-                        .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
-                        .emit("deviceOrientationDidChange", params);
+                                .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
+                                .emit("deviceOrientationDidChange", params);
                     }
                 }
 
@@ -93,11 +118,11 @@ public class OrientationModule extends ReactContextBaseJavaModule implements Lif
         };
 
         if (mOrientationListener.canDetectOrientation()) {
-           FLog.d(ReactConstants.TAG, "orientation detect enabled.");
-           mOrientationListener.enable();
+            FLog.d(ReactConstants.TAG, "orientation detect enabled.");
+            mOrientationListener.enable();
         } else {
-           FLog.d(ReactConstants.TAG, "orientation detect disabled.");
-           mOrientationListener.disable();
+            FLog.d(ReactConstants.TAG, "orientation detect disabled.");
+            mOrientationListener.disable();
         }
 
         mReceiver = new BroadcastReceiver() {
@@ -107,42 +132,20 @@ public class OrientationModule extends ReactContextBaseJavaModule implements Lif
                 String orientationValue = getCurrentOrientation();
                 lastOrientationValue = orientationValue;
 
-                FLog.d(ReactConstants.TAG,"Orientation changed to " + orientationValue);
+                FLog.d(ReactConstants.TAG, "Orientation changed to " + orientationValue);
 
                 WritableMap params = Arguments.createMap();
                 params.putString("orientation", orientationValue);
                 if (ctx.hasActiveCatalystInstance()) {
                     ctx
-                    .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
-                    .emit("orientationDidChange", params);
+                            .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
+                            .emit("orientationDidChange", params);
                 }
 
             }
         };
 
         ctx.addLifecycleEventListener(this);
-    }
-
-    @Override
-    public String getName() {
-        return "Orientation";
-    }
-
-    private String getCurrentOrientation() {
-
-        final Display display = ((WindowManager) getReactApplicationContext().getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
-
-        switch (display.getRotation()) {
-            case Surface.ROTATION_0:
-                return "PORTRAIT";
-            case Surface.ROTATION_90:
-                return "LANDSCAPE-LEFT";
-            case Surface.ROTATION_180:
-                return "PORTRAIT-UPSIDEDOWN";
-            case Surface.ROTATION_270:
-                return "LANDSCAPE-RIGHT";
-        }
-        return "UNKNOWN";
     }
 
     @ReactMethod

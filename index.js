@@ -33,6 +33,12 @@ function getKey(listener) {
 }
 
 export default class Orientation {
+    static init = () => {
+        if (Platform.OS === "android") {
+            OrientationNative.init();
+        }
+    }
+
     static getOrientation = cb => {
         OrientationNative.getOrientation(orientation => {
             cb(orientation);
