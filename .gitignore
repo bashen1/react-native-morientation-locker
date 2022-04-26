@@ -1,0 +1,5 @@
+node_modules/
+xcuserdata/
+xcshareddata/
+contents.xcworkspacedata
+.DS_Store
